@@ -4,6 +4,7 @@ import com.barrositcompany.algasenrors.tempature.processing.api.model.Temperatur
 import io.hypersistence.tsid.TSID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.amqp.core.MessagePostProcessor;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -49,6 +50,10 @@ public class TempatureProcessingController {
         String routingKey = "";
         Object message = logOutputDTO;
 
-        rabbitTemplate.convertAndSend(exchange, routingKey, message);
+        MessagePostProcessor messagePostProcessor = messageProcessor -> {
+            messageProcessor.getMessageProperties().setHeader("sensorId", logOutputDTO.getSensorId().toString());
+            return messageProcessor;
+        };
+        rabbitTemplate.convertAndSend(exchange, routingKey, message, messagePostProcessor);
     }
 }
